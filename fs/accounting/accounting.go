@@ -39,6 +39,8 @@ func Start(ctx context.Context) {
 
 	// Start the transactions per second limiter
 	StartLimitTPS(ctx)
+	StartLimitTPSGeneral(ctx)
+	StartLimitTPSUpload(ctx)
 
 	// Set the error count function pointer up in fs
 	//

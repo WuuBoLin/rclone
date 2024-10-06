@@ -43,6 +43,7 @@ func (o *Object) createUploadSession(ctx context.Context, leaf, directoryID stri
 	}
 	var resp *http.Response
 	err = o.fs.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSUpload(ctx)
 		resp, err = o.fs.srv.CallJSON(ctx, &opts, &request, &response)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -72,6 +73,7 @@ func (o *Object) uploadPart(ctx context.Context, SessionID string, offset, total
 	}
 	var resp *http.Response
 	err = o.fs.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSUpload(ctx)
 		opts.Body = wrap(bytes.NewReader(chunk))
 		resp, err = o.fs.srv.CallJSON(ctx, &opts, nil, &response)
 		return shouldRetry(ctx, resp, err)
@@ -107,6 +109,7 @@ func (o *Object) commitUpload(ctx context.Context, SessionID string, parts []api
 outer:
 	for tries = 0; tries < maxTries; tries++ {
 		err = o.fs.pacer.Call(func() (bool, error) {
+			accounting.LimitTPSUpload(ctx)
 			resp, err = o.fs.srv.CallJSON(ctx, &opts, &request, nil)
 			if err != nil {
 				return shouldRetry(ctx, resp, err)
@@ -166,6 +169,7 @@ func (o *Object) abortUpload(ctx context.Context, SessionID string) (err error) 
 	}
 	var resp *http.Response
 	err = o.fs.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSUpload(ctx)
 		resp, err = o.fs.srv.Call(ctx, &opts)
 		return shouldRetry(ctx, resp, err)
 	})

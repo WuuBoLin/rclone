@@ -16,6 +16,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/rclone/rclone/fs/accounting"
 	"io"
 	"net/http"
 	"net/url"
@@ -406,6 +407,7 @@ func (f *Fs) readMetaDataForPath(ctx context.Context, path string) (info *api.It
 	}
 	var item api.Item
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err := f.srv.CallJSON(ctx, &opts, nil, &item)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -615,6 +617,7 @@ func (f *Fs) CreateDir(ctx context.Context, pathID, leaf string) (newID string, 
 		},
 	}
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, &mkdir, &info)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -655,6 +658,7 @@ OUTER:
 		var result api.FolderItems
 		var resp *http.Response
 		err = f.pacer.Call(func() (bool, error) {
+			accounting.LimitTPSGeneral(ctx)
 			resp, err = f.srv.CallJSON(ctx, &opts, nil, &result)
 			return shouldRetry(ctx, resp, err)
 		})
@@ -789,6 +793,7 @@ func (f *Fs) preUploadCheck(ctx context.Context, leaf, directoryID string, size 
 	var result api.PreUploadCheckResponse
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, &check, &result)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -882,6 +887,7 @@ func (f *Fs) deleteObject(ctx context.Context, id string) error {
 		NoResponse: true,
 	}
 	return f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err := f.srv.Call(ctx, &opts)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -909,6 +915,7 @@ func (f *Fs) purgeCheck(ctx context.Context, dir string, check bool) error {
 	opts.Parameters.Set("recursive", strconv.FormatBool(!check))
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.Call(ctx, &opts)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1001,6 +1008,7 @@ func (f *Fs) Copy(ctx context.Context, src fs.Object, remote string) (fs.Object,
 	var resp *http.Response
 	var info *api.Item
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, &copyFile, &info)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1039,6 +1047,7 @@ func (f *Fs) move(ctx context.Context, endpoint, id, leaf, directoryID string) (
 	}
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, &move, &info)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1057,6 +1066,7 @@ func (f *Fs) About(ctx context.Context) (usage *fs.Usage, err error) {
 	var user api.User
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, nil, &user)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1170,6 +1180,7 @@ func (f *Fs) PublicLink(ctx context.Context, remote string, expire fs.Duration, 
 	var info api.Item
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, &shareLink, &info)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1188,6 +1199,7 @@ func (f *Fs) deletePermanently(ctx context.Context, itemType, id string) error {
 		opts.Path = "/folders/" + id + "/trash"
 	}
 	return f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err := f.srv.Call(ctx, &opts)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1307,6 +1319,7 @@ func (f *Fs) changeNotifyStreamPosition(ctx context.Context) (streamPosition str
 	var result api.Events
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = f.srv.CallJSON(ctx, &opts, nil, &result)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1363,6 +1376,7 @@ func (f *Fs) changeNotifyRunner(ctx context.Context, notifyFunc func(string, fs.
 		var resp *http.Response
 		fs.Debugf(f, "Checking for changes on remote (next_stream_position: %q)", nextStreamPosition)
 		err = f.pacer.Call(func() (bool, error) {
+			accounting.LimitTPSGeneral(ctx)
 			resp, err = f.srv.CallJSON(ctx, &opts, nil, &result)
 			return shouldRetry(ctx, resp, err)
 		})
@@ -1608,6 +1622,7 @@ func (o *Object) setModTime(ctx context.Context, modTime time.Time) (*api.Item, 
 	}
 	var info *api.Item
 	err := o.fs.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err := o.fs.srv.CallJSON(ctx, &opts, &update, &info)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1641,6 +1656,7 @@ func (o *Object) Open(ctx context.Context, options ...fs.OpenOption) (in io.Read
 		Options: options,
 	}
 	err = o.fs.pacer.Call(func() (bool, error) {
+		accounting.LimitTPSGeneral(ctx)
 		resp, err = o.fs.srv.Call(ctx, &opts)
 		return shouldRetry(ctx, resp, err)
 	})
@@ -1681,6 +1697,7 @@ func (o *Object) upload(ctx context.Context, in io.Reader, leaf, directoryID str
 		opts.Path = "/files/content"
 	}
 	err = o.fs.pacer.CallNoRetry(func() (bool, error) {
+		accounting.LimitTPSUpload(ctx)
 		resp, err = o.fs.srv.CallJSON(ctx, &opts, &upload, &result)
 		return shouldRetry(ctx, resp, err)
 	})

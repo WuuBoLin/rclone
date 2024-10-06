@@ -282,6 +282,26 @@ var ConfigOptionsInfo = Options{{
 	Help:    "Max burst of transactions for --tpslimit",
 	Groups:  "Networking",
 }, {
+	Name:    "box_tpslimit_general",
+	Default: 0.0,
+	Help:    "Limit HTTP transactions per second to box.com general API",
+	Groups:  "Networking",
+}, {
+	Name:    "box_tpslimit_burst_general",
+	Default: 1,
+	Help:    "Max burst of transactions for --box-tpslimit-general",
+	Groups:  "Networking",
+}, {
+	Name:    "box_tpslimit_upload",
+	Default: 0.0,
+	Help:    "Limit HTTP transactions per second to box.com upload API",
+	Groups:  "Networking",
+}, {
+	Name:    "box_tpslimit_burst_upload",
+	Default: 1,
+	Help:    "Max burst of transactions for --box-tpslimit-upload",
+	Groups:  "Networking",
+}, {
 	Name:    "user_agent",
 	Default: "rclone/" + Version,
 	Help:    "Set the user-agent to a specified string",
@@ -583,6 +603,10 @@ type ConfigInfo struct {
 	BwLimitFile                BwTimetable       `config:"bwlimit_file"`
 	TPSLimit                   float64           `config:"tpslimit"`
 	TPSLimitBurst              int               `config:"tpslimit_burst"`
+	TPSLimitGeneral            float64           `config:"box_tpslimit_general"`
+	TPSLimitBurstGeneral       int               `config:"box_tpslimit_burst_general"`
+	TPSLimitUpload             float64           `config:"box_tpslimit_upload"`
+	TPSLimitBurstUpload        int               `config:"box_tpslimit_burst_upload"`
 	BindAddr                   net.IP            `config:"bind_addr"`
 	DisableFeatures            []string          `config:"disable"`
 	UserAgent                  string            `config:"user_agent"`
